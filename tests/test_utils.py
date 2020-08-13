@@ -15,7 +15,6 @@ from typing import List
 import pytest
 import www_authenticate
 
-from _pytest.fixtures import Config
 from _pytest.tmpdir import TempPathFactory
 
 from pytest_docker_registry_fixtures import (
@@ -126,7 +125,7 @@ def test_get_pushed_images_empty(request):
     assert not get_pushed_images(request)
 
 
-def test_get_user_defined_file(pytestconfig: Config):
+def test_get_user_defined_file(pytestconfig: "_pytest.config.Config"):
     """Tests that the user defined check fails here."""
 
     for _ in get_user_defined_file(pytestconfig, "does_not_exist"):

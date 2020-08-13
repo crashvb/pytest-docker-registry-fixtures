@@ -31,7 +31,7 @@ setup(
     entry_points={
         "pytest11": ["docker_registry_fixtures = pytest_docker_registry_fixtures"]
     },
-    extras_require={"dev": ["black", "pylint", "twine", "wheel"]},
+    extras_require={"dev": ["black", "pylint", "twine", "wheel", "www_authenticate"]},
     include_package_data=True,
     install_requires=[
         "bcrypt",
