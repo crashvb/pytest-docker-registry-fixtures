@@ -15,7 +15,6 @@ from typing import List
 import pytest
 import www_authenticate
 
-from _pytest.fixtures import Config
 from _pytest.tmpdir import TempPathFactory
 
 from pytest_docker_registry_fixtures import (
@@ -126,7 +125,7 @@ def test_get_pushed_images_empty(request):
     assert not get_pushed_images(request)
 
 
-def test_get_user_defined_file(pytestconfig: Config):
+def test_get_user_defined_file(pytestconfig: "_pytest.config.Config"):
     """Tests that the user defined check fails here."""
 
     for _ in get_user_defined_file(pytestconfig, "does_not_exist"):
@@ -140,6 +139,7 @@ def test_get_pushed_images_not_empty(request):
     assert "tianon/true" in get_pushed_images(request)
 
 
+@pytest.mark.online
 @pytest.mark.parametrize(
     "image",
     [
@@ -184,6 +184,7 @@ def test_replicate_image(docker_registry_secure: DockerRegistrySecure, image: st
         verify_http_response(https_connection, image_name, media_type)
 
 
+@pytest.mark.online
 @pytest.mark.parametrize(
     "manifest_list",
     [
