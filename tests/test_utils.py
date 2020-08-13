@@ -139,6 +139,7 @@ def test_get_pushed_images_not_empty(request):
     assert "tianon/true" in get_pushed_images(request)
 
 
+@pytest.mark.online
 @pytest.mark.parametrize(
     "image",
     [
@@ -183,6 +184,7 @@ def test_replicate_image(docker_registry_secure: DockerRegistrySecure, image: st
         verify_http_response(https_connection, image_name, media_type)
 
 
+@pytest.mark.online
 @pytest.mark.parametrize(
     "manifest_list",
     [

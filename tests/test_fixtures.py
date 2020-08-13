@@ -92,6 +92,7 @@ def test_docker_registry_htpasswd(
 
 # Note: Cannot test both w/ and w/o images, as the fixtures is session scoped, and will push_images
 #       from other test cases.
+@pytest.mark.online
 def test_docker_registry_insecure(docker_registry_insecure: DockerRegistryInsecure):
     """Test that an insecure docker registry can be instantiated without images."""
     assert "127.0.0.1" in docker_registry_insecure.endpoint
@@ -123,6 +124,7 @@ def test_docker_registry_password(docker_registry_password: str):
     assert docker_registry_password
 
 
+@pytest.mark.online
 @pytest.mark.push_image("busybox:1.30.1")
 def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure, request):
     """Test that an secure docker registry can be instantiated with images."""
