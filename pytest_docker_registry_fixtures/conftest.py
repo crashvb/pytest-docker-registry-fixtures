@@ -4,7 +4,7 @@
 
 
 def pytest_addoption(parser):
-    """pytest addoption."""
+    """pytest add option."""
     # TODO: Figure out why pytest tries to load this file twice ?!?
     try:
         parser.addoption(
