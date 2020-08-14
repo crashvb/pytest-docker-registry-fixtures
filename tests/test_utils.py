@@ -73,7 +73,7 @@ def get_auth_headers(
     https_connection = HTTPSConnection(host=image_name.endpoint)
     https_connection.request(
         "GET",
-        url=f"{bearer['realm']}?service={bearer['service']}&scope=repository:{image_name.image}:pull&pytest-docker-registry-fixtures",
+        url=f"{bearer['realm']}?service={bearer['service']}&scope=repository:{image_name.image}:pull&client_id=pytest-docker-registry-fixtures",
         headers=auth_header_src,
     )
     payload = loads(https_connection.getresponse().read())
