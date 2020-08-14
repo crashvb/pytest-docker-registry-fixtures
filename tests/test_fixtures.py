@@ -166,12 +166,12 @@ def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure, re
     assert response.status_code == 401
 
     # Error: CA not trusted
-    with pytest.raises(SSLError) as excinfo:
+    with pytest.raises(SSLError) as exc_info:
         requests.head(
             f"https://{docker_registry_secure.endpoint}/v2/",
             headers=docker_registry_secure.auth_header,
         )
-    assert "CERTIFICATE_VERIFY_FAILED" in str(excinfo.value)
+    assert "CERTIFICATE_VERIFY_FAILED" in str(exc_info.value)
 
 
 def test_docker_registry_ssl_context(docker_registry_ssl_context: SSLContext):

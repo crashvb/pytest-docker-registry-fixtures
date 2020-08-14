@@ -10,7 +10,7 @@ from base64 import b64encode
 from http.client import HTTPSConnection
 from json import loads
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Union
 
 import pytest
 import www_authenticate
@@ -21,7 +21,7 @@ from pytest_docker_registry_fixtures import (
     DockerRegistrySecure,
     DOCKER_REGISTRY_SERVICE_PATTERN,
     generate_cacerts,
-    generate_htpassword,
+    generate_htpasswd,
     generate_keypair,
     get_docker_compose_user_defined,
     get_embedded_file,
@@ -35,11 +35,57 @@ from pytest_docker_registry_fixtures import (
 LOGGER = logging.getLogger(__name__)
 
 
+def get_auth_headers(
+    docker_registry_secure: DockerRegistrySecure, image_name: ImageName
+) -> Union[Dict[str, str], None]:
+    # pylint: disable=protected-access
+    """
+    Retrieves the authentication headers for a given image.
+    Args:
+        docker_registry_secure: The secure docker registry from which to retrieve the authentication headers.
+        image_name: The name of the image for which to retrieve the headers.
+
+    Returns: The authentication headers, or None.
+    """
+    # Try to retrieve credentials first ...
+    auth_header_src = None
+    for endpoint in docker_registry_secure.docker_client.api._auth_configs.auths:
+        if image_name.endpoint in endpoint:
+            credentials = docker_registry_secure.docker_client.api._auth_configs.auths[
+                endpoint
+            ]
+            auth = b64encode(
+                f"{credentials['username']}:{credentials['password']}".encode("utf-8")
+            ).decode("utf-8")
+            auth_header_src = {"Authorization": f"Basic {auth}"}
+
+    if not auth_header_src:
+        return None
+
+    # Try to retrieve an authentication token ...
+    https_connection = HTTPSConnection(host=image_name.endpoint)
+    https_connection.request("GET", url="/v2/", headers=auth_header_src)
+    auth_params = www_authenticate.parse(
+        https_connection.getresponse().headers["Www-Authenticate"]
+    )
+    bearer = auth_params["bearer"]
+
+    https_connection = HTTPSConnection(host=image_name.endpoint)
+    https_connection.request(
+        "GET",
+        url=f"{bearer['realm']}?service={bearer['service']}&scope=repository:{image_name.image}:pull&pytest-docker-registry-fixtures",
+        headers=auth_header_src,
+    )
+    payload = loads(https_connection.getresponse().read())
+    assert payload["token"]
+    return {"Authorization": f"Bearer {payload['token']}"}
+
+
 def verify_http_response(
     https_connection: HTTPSConnection, image_name: ImageName, media_type: str
 ):
     """
-    Verifies the http response checking for the existance of an image.
+    Verifies the http response checking for the existence of an image.
     Args:
         https_connection: The HTTPS connection from which to retrieve the HTTP response.
         image_name: The name of the image being verified.
@@ -75,7 +121,7 @@ def test_generate_htpasswd(tmp_path_factory: TempPathFactory):
     username = "myusername"
     password = "mypassword"
     path_last = None
-    for path in generate_htpassword(
+    for path in generate_htpasswd(
         tmp_path_factory, password=password, username=username
     ):
         assert path.exists()
@@ -171,7 +217,7 @@ def test_replicate_image(docker_registry_secure: DockerRegistrySecure, image: st
         )
         verify_http_response(https_connection, image_name, media_type)
     if image_name.tag:
-        # TODO: Fixgure out why HTTPSConnection can not perform multiple requests ?!?
+        # TODO: Fixgure out why HTTPSConnection cannot perform multiple requests ?!?
         https_connection = HTTPSConnection(
             context=docker_registry_secure.ssl_context,
             host=docker_registry_secure.endpoint,
@@ -190,48 +236,20 @@ def test_replicate_image(docker_registry_secure: DockerRegistrySecure, image: st
     [
         "index.docker.io/library/busybox@sha256:4b6ad3a68d34da29bf7c8ccb5d355ba8b4babcad1f99798204e7abb43e54ee3d",
         "index.docker.io/library/busybox:1.30.1",
+        "index.docker.io/library/busybox:1.30.1@sha256:4b6ad3a68d34da29bf7c8ccb5d355ba8b4babcad1f99798204e7abb43e54ee3d",
     ],
 )
-def test_replicate_image_manifest_list(
+def test_replicate_manifest_list(
     docker_registry_secure: DockerRegistrySecure, manifest_list: str
 ):
-    # pylint: disable=protected-access
-    """Tests that images can be replicated."""
+    """Tests that manifest lists can be replicated."""
 
     image_name = ImageName.parse(manifest_list)
 
     # Try to retrieve credentials first ...
-    auth_header_src = None
-    for endpoint in docker_registry_secure.docker_client.api._auth_configs.auths:
-        if image_name.endpoint in endpoint:
-            credentials = docker_registry_secure.docker_client.api._auth_configs.auths[
-                endpoint
-            ]
-            auth = b64encode(
-                f"{credentials['username']}:{credentials['password']}".encode("utf-8")
-            ).decode("utf-8")
-            auth_header_src = {"Authorization": f"Basic {auth}"}
-
+    auth_header_src = get_auth_headers(docker_registry_secure, image_name)
     if not auth_header_src:
         pytest.skip("Unable to retrieve credentials for: %s", image_name.endpoint)
-
-    # Try to retrieve an authentication token ...
-    https_connection = HTTPSConnection(host=image_name.endpoint)
-    https_connection.request("GET", url="/v2/", headers=auth_header_src)
-    auth_params = www_authenticate.parse(
-        https_connection.getresponse().headers["Www-Authenticate"]
-    )
-    bearer = auth_params["bearer"]
-
-    https_connection = HTTPSConnection(host=image_name.endpoint)
-    https_connection.request(
-        "GET",
-        url=f"{bearer['realm']}?service={bearer['service']}&scope=repository:{image_name.image}:pull&pytest-docker-registry-fixtures",
-        headers=auth_header_src,
-    )
-    payload = loads(https_connection.getresponse().read())
-    assert payload["token"]
-    auth_header_src = {"Authorization": f"Bearer {payload['token']}"}
 
     # Replicate all of the manifests referenced in the manifest list ...
     for image in [
@@ -272,7 +290,7 @@ def test_replicate_image_manifest_list(
         )
         verify_http_response(https_connection, image_name, media_type)
     if image_name.tag:
-        # TODO: Fixgure out why HTTPSConnection can not perform multiple requests ?!?
+        # TODO: Figure out why HTTPSConnection cannot perform multiple requests ?!?
         https_connection = HTTPSConnection(
             context=docker_registry_secure.ssl_context,
             host=docker_registry_secure.endpoint,

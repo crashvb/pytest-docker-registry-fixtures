@@ -94,7 +94,7 @@ def generate_cacerts(
         tmp_path.unlink(missing_ok=True)
 
 
-def generate_htpassword(
+def generate_htpasswd(
     tmp_path_factory: TempPathFactory,
     *,
     delete_after: bool = True,
@@ -277,22 +277,22 @@ def replicate_image(
     if always_pull or not img:
         img = docker_client.images.pull(str(image))
 
-    dest = image.clone()
-    dest.endpoint = endpoint
+    destination = image.clone()
+    destination.endpoint = endpoint
     # TODO: The Docker SDK doesn't appear to be able to push manifests by digest (refusing to create a tag with a digest
     #       reference) ...
-    if dest.digest:
-        dest.digest = None
-    if not dest.tag:
-        dest.tag = "pytest-docker-registry-fixtures"
-    img.tag(str(dest))
-    docker_client.images.push(str(dest))
+    if destination.digest:
+        destination.digest = None
+    if not destination.tag:
+        destination.tag = "pytest-docker-registry-fixtures"
+    img.tag(str(destination))
+    docker_client.images.push(str(destination))
 
     if delete_after:
         # We either own the local cache, or we don't ...
         if always_pull:
             docker_client.images.remove(image=str(image))
-        docker_client.images.remove(image=str(dest))
+        docker_client.images.remove(image=str(destination))
 
 
 def replicate_manifest_list(

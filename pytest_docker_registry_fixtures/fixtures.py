@@ -27,7 +27,7 @@ from .utils import (
     DOCKER_REGISTRY_SERVICE,
     DOCKER_REGISTRY_SERVICE_PATTERN,
     generate_cacerts,
-    generate_htpassword,
+    generate_htpasswd,
     generate_keypair,
     get_docker_compose_user_defined,
     get_embedded_file,
@@ -161,7 +161,7 @@ def docker_registry_htpasswd(
 ) -> Generator[Path, None, None]:
     """Provides the location of the htpasswd file for the secure registry service."""
     yield from get_user_defined_file(pytestconfig, "htpasswd")
-    yield from generate_htpassword(
+    yield from generate_htpasswd(
         tmp_path_factory,
         username=docker_registry_username,
         password=docker_registry_password,

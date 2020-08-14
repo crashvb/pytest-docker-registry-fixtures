@@ -87,7 +87,7 @@ Returns the path to a self-signed certificate and private key that are used by t
 
 ### <a name="docker_registry_hwpasswd"></a> docker_registry_htpasswd
 
-Provides the path to an htpassword file that is used by the secure docker registry service. If a user-defined htpasswd file (<tt>tests/htpasswd</tt>) can be located, it is used. Otherwise, a temporary htpasswd file is created using credentials from the [docker_registry_password](#docker_registry_password) and [docker_registry_username](#docker_registry_username) fixtures. This fixtures is used to instantiate the secure docker registry service.
+Provides the path to an htpasswd file that is used by the secure docker registry service. If a user-defined htpasswd file (<tt>tests/htpasswd</tt>) can be located, it is used. Otherwise, a temporary htpasswd file is created using credentials from the [docker_registry_password](#docker_registry_password) and [docker_registry_username](#docker_registry_username) fixtures. This fixtures is used to instantiate the secure docker registry service.
 
 ### <a name="docker_registry_insecure"></a> docker_registry_insecure
 
