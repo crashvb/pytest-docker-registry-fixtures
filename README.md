@@ -211,12 +211,18 @@ def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure, re
 ## <a name="limitations"></a>Limitations
 
 1. All of the fixtures provided by this package are <tt>session</tt> scoped; and will only be executed once per test execution. This allows for a maximum of two docker registry services: one insecure instance and one secure instance.
-1. The `push_image` marker is processed as part of the `docker_registry_insecure` and `docker_registry_secure` fixtures. As such:
+2. The `push_image` marker is processed as part of the `docker_registry_insecure` and `docker_registry_secure` fixtures. As such:
   * _all_ markers will be aggregated during initialization of the session, and processed prior test execution.
   * Pushed images will be replicated to both the insecure and secure docker registries, if both are instantiated.
-1. A working docker client is required to push images.
+3. A working docker client is required to push images.
 
 ## Changelog
+
+### 0.1.1 (2020-08-13)
+
+* Better testing of manifest lists.
+* Minor refactoring.
+* Cleanup lint.
 
 ### 0.1.0 (2020-08-06)
 
