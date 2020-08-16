@@ -73,7 +73,8 @@ def get_auth_headers(
     https_connection = HTTPSConnection(host=image_name.endpoint)
     https_connection.request(
         "GET",
-        url=f"{bearer['realm']}?service={bearer['service']}&scope=repository:{image_name.image}:pull&client_id=pytest-docker-registry-fixtures",
+        url=f"{bearer['realm']}?service={bearer['service']}&scope=repository:{image_name.image}:pull&"
+        f"client_id=pytest-docker-registry-fixtures",
         headers=auth_header_src,
     )
     payload = loads(https_connection.getresponse().read())
@@ -236,7 +237,8 @@ def test_replicate_image(docker_registry_secure: DockerRegistrySecure, image: st
     [
         "index.docker.io/library/busybox@sha256:4b6ad3a68d34da29bf7c8ccb5d355ba8b4babcad1f99798204e7abb43e54ee3d",
         "index.docker.io/library/busybox:1.30.1",
-        "index.docker.io/library/busybox:1.30.1@sha256:4b6ad3a68d34da29bf7c8ccb5d355ba8b4babcad1f99798204e7abb43e54ee3d",
+        "index.docker.io/library/busybox:1.30.1@"
+        "sha256:4b6ad3a68d34da29bf7c8ccb5d355ba8b4babcad1f99798204e7abb43e54ee3d",
     ],
 )
 def test_replicate_manifest_list(
