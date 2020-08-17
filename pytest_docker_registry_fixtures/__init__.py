@@ -6,4 +6,4 @@ from .conftest import *
 from .fixtures import *
 from .utils import get_pushed_images, replicate_manifest_list
 
-__version__ = "0.1.2.dev0"
+__version__ = "0.1.2"
