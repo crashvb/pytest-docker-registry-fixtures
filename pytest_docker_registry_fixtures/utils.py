@@ -319,12 +319,17 @@ def replicate_manifest_list(
     """
     media_type = "application/vnd.docker.distribution.manifest.list.v2+json"
 
+    # Note: This cannot be imported above, as it causes a circular import!
+    from . import __version__  # pylint: disable=import-outside-toplevel
+
+    user_agent = f"pytest-docker-registry-fixtures/{__version__}"
+
     https_connection = HTTPSConnection(context=ssl_context_src, host=image.endpoint)
     identifier = image.digest if image.digest else image.tag  # Prefer digest
     https_connection.request(
         "GET",
         url=f"/v2/{image.image}/manifests/{identifier}",
-        headers={"Accept": media_type, **auth_header_src},
+        headers={"Accept": media_type, "User-Agent": user_agent, **auth_header_src},
     )
     response = https_connection.getresponse()
     assert response.status == 200
@@ -338,7 +343,11 @@ def replicate_manifest_list(
     https_connection.request(
         "PUT",
         url=f"/v2/{image.image}/manifests/{identifier}",
-        headers={"Content-Type": media_type, **auth_header_dest},
+        headers={
+            "Content-Type": media_type,
+            "User-Agent": user_agent,
+            **auth_header_dest,
+        },
         body=manifest,
     )
     assert https_connection.getresponse().status == 201
