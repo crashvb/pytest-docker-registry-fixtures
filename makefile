@@ -2,7 +2,7 @@
 
 -include makefile.config
 
-.PHONY: black build clean default deploy purge sign test test_code test_package venv verify
+.PHONY: black build clean default deploy purge sign test test_all test_all_verbose test_code test_package venv verify
 
 tmpdir:=$(shell mktemp --directory)
 
