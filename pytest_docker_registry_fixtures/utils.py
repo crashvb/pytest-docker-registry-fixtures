@@ -68,7 +68,10 @@ def check_url_secure(
 
 
 def generate_cacerts(
-    tmp_path_factory: TempPathFactory, *, delete_after: bool = True, certificate: Path,
+    tmp_path_factory: TempPathFactory,
+    *,
+    delete_after: bool = True,
+    certificate: Path,
 ) -> Generator[Path, None, None]:
     """
     Generates a temporary CA certificate trust store containing a given certificate.
