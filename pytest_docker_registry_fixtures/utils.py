@@ -70,8 +70,8 @@ def check_url_secure(
 def generate_cacerts(
     tmp_path_factory: TempPathFactory,
     *,
-    delete_after: bool = True,
     certificate: Path,
+    delete_after: bool = True,
 ) -> Generator[Path, None, None]:
     """
     Generates a temporary CA certificate trust store containing a given certificate.
@@ -291,11 +291,8 @@ def replicate_image(
     img.tag(str(destination))
     docker_client.images.push(str(destination))
 
-    if delete_after:
-        # We either own the local cache, or we don't ...
-        if always_pull:
-            docker_client.images.remove(image=str(image))
-        docker_client.images.remove(image=str(destination))
+    if always_pull and delete_after:
+        docker_client.images.remove(image=str(image))
 
 
 def replicate_manifest_list(
