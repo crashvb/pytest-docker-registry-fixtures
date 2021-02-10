@@ -41,6 +41,8 @@ LOGGER = logging.getLogger(__name__)
 
 class DockerRegistryCerts(NamedTuple):
     # pylint: disable=missing-class-docstring
+    ca_certificate: Path
+    ca_private_key: Path
     certificate: Path
     private_key: Path
 
@@ -131,7 +133,7 @@ def docker_registry_cacerts(
     """
     yield from get_user_defined_file(pytestconfig, "cacerts")
     yield from generate_cacerts(
-        tmp_path_factory, certificate=docker_registry_certs.certificate
+        tmp_path_factory, certificate=docker_registry_certs.ca_certificate
     )
 
 
@@ -143,11 +145,22 @@ def docker_registry_certs(
     # TODO: Augment to allow for reading certificates from /test ...
     tmp_path = tmp_path_factory.mktemp(__name__)
     keypair = generate_keypair()
+    path_ca_certificate = tmp_path.joinpath(f"{DOCKER_REGISTRY_SERVICE}-ca.crt")
+    path_ca_certificate.write_bytes(keypair.ca_certificate)
+    path_ca_private_key = tmp_path.joinpath(f"{DOCKER_REGISTRY_SERVICE}-ca.key")
+    path_ca_private_key.write_bytes(keypair.ca_private_key)
     path_certificate = tmp_path.joinpath(f"{DOCKER_REGISTRY_SERVICE}.crt")
     path_certificate.write_bytes(keypair.certificate)
     path_key = tmp_path.joinpath(f"{DOCKER_REGISTRY_SERVICE}.key")
     path_key.write_bytes(keypair.private_key)
-    yield DockerRegistryCerts(certificate=path_certificate, private_key=path_key)
+    yield DockerRegistryCerts(
+        ca_certificate=path_ca_certificate,
+        ca_private_key=path_ca_private_key,
+        certificate=path_certificate,
+        private_key=path_key,
+    )
+    path_ca_certificate.unlink(missing_ok=True)
+    path_ca_private_key.unlink(missing_ok=True)
     path_certificate.unlink(missing_ok=True)
     path_key.unlink(missing_ok=True)
 
@@ -241,6 +254,7 @@ def docker_registry_secure(
 
     LOGGER.debug("Starting secure docker registry service ...")
     LOGGER.debug("  docker-compose : %s", path_docker_compose)
+    LOGGER.debug("  ca certificate : %s", docker_registry_certs.ca_certificate)
     LOGGER.debug("  certificate    : %s", docker_registry_certs.certificate)
     LOGGER.debug("  htpasswd       : %s", docker_registry_htpasswd)
     LOGGER.debug("  private key    : %s", docker_registry_certs.private_key)

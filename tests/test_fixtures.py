@@ -66,12 +66,30 @@ def test_docker_registry_cacerts(
     """Test that a temporary CA certificate trust store can be provided."""
     assert docker_registry_cacerts.exists()
     cacerts = docker_registry_cacerts.read_text("utf-8")
+
+    ca_cert = docker_registry_certs.ca_certificate.read_text("utf-8")
+    assert ca_cert in cacerts
+
+    ca_key = docker_registry_certs.ca_private_key.read_text("utf-8")
+    assert ca_key not in cacerts
+
     cert = docker_registry_certs.certificate.read_text("utf-8")
-    assert cert in cacerts
+    assert cert not in cacerts
+
+    key = docker_registry_certs.private_key.read_text("utf-8")
+    assert key not in cacerts
 
 
 def test_docker_registry_certs(docker_registry_certs: DockerRegistryCerts):
     """Test that a certificate and private key can be provided."""
+    assert docker_registry_certs.ca_certificate.exists()
+    assert "BEGIN CERTIFICATE" in docker_registry_certs.ca_certificate.read_text(
+        "utf-8"
+    )
+    assert docker_registry_certs.ca_private_key.exists()
+    assert "BEGIN PRIVATE KEY" in docker_registry_certs.ca_private_key.read_text(
+        "utf-8"
+    )
     assert docker_registry_certs.certificate.exists()
     assert "BEGIN CERTIFICATE" in docker_registry_certs.certificate.read_text("utf-8")
     assert docker_registry_certs.private_key.exists()

@@ -88,7 +88,18 @@ Locates a user-defined CA trust store (<tt>tests/cacerts</tt>) to use to verify 
 
 ### <a name="docker_registry_certs"></a> docker_registry_certs
 
-Returns the path to a self-signed certificate and private key that are used by the secure docker registry service. This fixture is used to instantiate the secure docker registry service.
+Returns the paths of the self-signed certificate authority certificate, certificate, and private key that are used by the secure docker registry service. This fixture is used to instantiate the secure docker registry service.
+
+#### NamedTuple Fields
+
+The following fields are defined in the tuple provided by this fixture:
+
+* **ca_certificate** - Path to the self-signed certificate authority certificate.
+* **ca_private_key** - Path to the self-signed certificate authority private key.
+* **certificate** - Path to the certificate.
+* **private_key** - Path to the private key.
+
+Typing is provided by `pytest_docker_registry_fixtures.DockerRegistryCerts`.
 
 ### <a name="docker_registry_hwpasswd"></a> docker_registry_htpasswd
 
@@ -230,22 +241,6 @@ def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure, re
   * _all_ markers will be aggregated during initialization of the session, and processed prior test execution.
   * Pushed images will be replicated to both the insecure and secure docker registries, if both are instantiated.
 3. A working docker client is required to push images.
-
-## Changelog
-
-### 0.1.2 (2020-08-17)
-
-* Improve clientid / useragent.
-
-### 0.1.1 (2020-08-13)
-
-* Better testing of manifest lists.
-* Minor refactoring.
-* Cleanup lint.
-
-### 0.1.0 (2020-08-06)
-
-* Initial release.
 
 ## Development
 
