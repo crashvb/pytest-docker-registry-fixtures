@@ -15,6 +15,7 @@ from typing import Dict, List, Union
 import pytest
 import www_authenticate
 
+from OpenSSL import crypto
 from _pytest.tmpdir import TempPathFactory
 
 from pytest_docker_registry_fixtures import (
@@ -137,10 +138,20 @@ def test_generate_htpasswd(tmp_path_factory: TempPathFactory):
 def test_generate_keypair():
     """Test that a keypair can be generated."""
     keypair = generate_keypair()
+    assert keypair.ca_certificate
+    assert keypair.ca_private_key
     assert keypair.certificate
     assert keypair.private_key
 
-    # TODO: https://v13.gr/2013/04/12/verify-that-private-match-a-certificate-with-pyopenssl/
+    x509_store = crypto.X509Store()
+    ca_certificate = crypto.load_certificate(
+        crypto.FILETYPE_PEM, keypair.ca_certificate
+    )
+    x509_store.add_cert(ca_certificate)
+
+    certificate = crypto.load_certificate(crypto.FILETYPE_PEM, keypair.certificate)
+    x509_store_context = crypto.X509StoreContext(x509_store, certificate)
+    x509_store_context.verify_certificate()
 
 
 def test_get_docker_compose_user_defined(docker_compose_files: List[str]):

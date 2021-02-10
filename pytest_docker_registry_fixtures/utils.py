@@ -11,6 +11,7 @@ from random import randrange
 from shutil import copyfile
 from socket import getfqdn
 from ssl import SSLContext
+from time import time
 from typing import Dict, Generator, List, NamedTuple
 
 import bcrypt
@@ -32,6 +33,8 @@ DOCKER_REGISTRY_SERVICE_PATTERN = f"{DOCKER_REGISTRY_SERVICE}-{{0}}"
 
 class CertificateKeypair(NamedTuple):
     # pylint: disable=missing-class-docstring
+    ca_certificate: bytes
+    ca_private_key: bytes
     certificate: bytes
     private_key: bytes
 
@@ -125,9 +128,15 @@ def generate_htpasswd(
         tmp_path.unlink(missing_ok=True)
 
 
-def generate_keypair() -> CertificateKeypair:
+def generate_keypair(
+    *, keysize: int = 4096, life_cycle: int = 7 * 24 * 60 * 60
+) -> CertificateKeypair:
     """
     Generates a keypair and certificate for the registry service.
+
+    Args:
+        keysize: size of the private key.
+        life_cycle: Lifespan of the generated certificates, in seconds.
 
     Returns:
         tuple:
@@ -135,19 +144,50 @@ def generate_keypair() -> CertificateKeypair:
             private_key: The private key.
     """
 
-    pkey = crypto.PKey()
-    pkey.generate_key(crypto.TYPE_RSA, 2048)
+    # Generate a self-signed certificate authority ...
+    pkey_ca = crypto.PKey()
+    pkey_ca.generate_key(crypto.TYPE_RSA, keysize)
 
-    x509 = crypto.X509()
-    x509.get_subject().commonName = getfqdn()
-    x509.gmtime_adj_notBefore(0)
-    x509.gmtime_adj_notAfter(365 * 24 * 60 * 60)
-    x509.set_issuer(x509.get_subject())
-    x509.set_pubkey(pkey)
-    x509.set_serial_number(randrange(100000))
-    x509.set_version(2)
+    x509_ca = crypto.X509()
+    x509_ca.get_subject().commonName = f"pytest-docker-registry-fixtures-ca-{time()}"
+    x509_ca.gmtime_adj_notBefore(0)
+    x509_ca.gmtime_adj_notAfter(life_cycle)
+    x509_ca.set_issuer(x509_ca.get_subject())
+    x509_ca.set_pubkey(pkey_ca)
+    x509_ca.set_serial_number(randrange(100000))
+    x509_ca.set_version(2)
 
-    x509.add_extensions(
+    x509_ca.add_extensions(
+        [crypto.X509Extension(b"subjectKeyIdentifier", False, b"hash", subject=x509_ca)]
+    )
+    x509_ca.add_extensions(
+        [
+            crypto.X509Extension(b"basicConstraints", True, b"CA:TRUE"),
+            crypto.X509Extension(
+                b"authorityKeyIdentifier", False, b"keyid:always", issuer=x509_ca
+            ),
+            crypto.X509Extension(
+                b"keyUsage", True, b"digitalSignature, keyCertSign, cRLSign"
+            ),
+        ]
+    )
+
+    x509_ca.sign(pkey_ca, "sha256")
+
+    # Generate a certificate ...
+    pkey_cert = crypto.PKey()
+    pkey_cert.generate_key(crypto.TYPE_RSA, keysize)
+
+    x509_cert = crypto.X509()
+    x509_cert.get_subject().commonName = getfqdn()
+    x509_cert.gmtime_adj_notBefore(0)
+    x509_cert.gmtime_adj_notAfter(life_cycle)
+    x509_cert.set_issuer(x509_ca.get_subject())
+    x509_cert.set_pubkey(pkey_cert)
+    x509_cert.set_serial_number(randrange(100000))
+    x509_cert.set_version(2)
+
+    x509_cert.add_extensions(
         [
             crypto.X509Extension(b"basicConstraints", False, b"CA:FALSE"),
             crypto.X509Extension(b"extendedKeyUsage", False, b"serverAuth, clientAuth"),
@@ -167,11 +207,13 @@ def generate_keypair() -> CertificateKeypair:
         ]
     )
 
-    x509.sign(pkey, "sha256")
+    x509_cert.sign(pkey_ca, "sha256")
 
     return CertificateKeypair(
-        certificate=crypto.dump_certificate(crypto.FILETYPE_PEM, x509),
-        private_key=crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey),
+        ca_certificate=crypto.dump_certificate(crypto.FILETYPE_PEM, x509_ca),
+        ca_private_key=crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey_ca),
+        certificate=crypto.dump_certificate(crypto.FILETYPE_PEM, x509_cert),
+        private_key=crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey_cert),
     )
 
 
