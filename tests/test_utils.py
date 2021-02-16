@@ -157,10 +157,10 @@ def test_generate_keypair():
 def test_get_docker_compose_user_defined(docker_compose_files: List[str]):
     """Tests that the user defined check fails here."""
 
-    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure")
+    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", 0)
     for _ in get_docker_compose_user_defined(docker_compose_files, service_name):
         assert False
-    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure")
+    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", 0)
     for _ in get_docker_compose_user_defined(docker_compose_files, service_name):
         assert False
 

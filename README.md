@@ -57,7 +57,7 @@ $ source env/bin/activate
 $ python -m pip install --editable .[dev]
 ```
 
-## Fixtures
+## <a name="fixtures"></a>Fixtures
 
 ### docker_client
 
@@ -114,7 +114,6 @@ import requests
 from pytest_docker_registry_fixtures import DockerRegistryInsecure  # Optional, for typing
 
 def test_docker_registry_insecure(docker_registry_insecure: DockerRegistryInsecure):
-
     for image_name in docker_registry_insecure.images:
         response = requests.head(
             f"http://{docker_registry_insecure.endpoint}/v2/{image_name.image}/manifests/{image_name.tag}",
@@ -148,7 +147,6 @@ import requests
 from pytest_docker_registry_fixtures import DockerRegistrySecure  # Optional, for typing
 
 def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure):
-
     for image_name in docker_registry_secure.images:
         response = requests.head(
             f"https://{docker_registry_secure.endpoint}/v2/{image_name.image}/manifests/{image_name.tag}",
@@ -234,13 +232,52 @@ def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure, re
     image_name = ImageName.parse(get_pushed_images(request)[0])
 ```
 
+## <a name="enumerated_fixtures"></a>Enumerated Fixtures
+
+It is possible to instantiate mutiple registry instances using the corresponding enumerated fixtures. All [fixtures](#fixtures) listed above have _*_list_ (e.g. `docker_registry_secure` -> `docker_registry_secure_list`) versions that will return enumerated lists of corresponding data type.
+
+For example:
+
+```python
+import requests
+from typing import List  # Optional, for typing
+from pytest_docker_registry_fixtures import DockerRegistrySecure  # Optional, for typing
+
+def test_docker_registry_secure_list(docker_registry_secure_list: List[DockerRegistrySecure]):
+    for docker_registry_secure in docker_registry_secure_list:
+        for image_name in docker_registry_secure.images:
+            response = requests.head(
+                f"https://{docker_registry_secure.endpoint}/v2/{image_name.image}/manifests/{image_name.tag}",
+                headers=docker_registry_secure.auth_header,
+                verify=str(docker_registry_secure.cacerts),
+            )
+            assert response.status_code == 200
+            assert "Docker-Content-Digest" in response.headers
+```
+
+It is possible to use both singular and enumerated fixtures within the same test context; however, the same values will be returned for the singular fixture as the first enumerated list value (i.e. docker_registry_secure == docker_registry_secure_list[0]). To avoid complications with lower layers, mainly docker-compose, and to allow for this interchangeability, caching is used internally.
+
+By default, the scale factor of the enumerated instances is set to one (n=1). This value can be changed by overriding the `pdrf_scale_factor` fixture, as follows:
+
+```python
+import pytest
+
+@pytest.fixture(scope="session")
+def pdrf_scale_factor() -> int:
+    return 4
+```
+
+This fixture will be used to scale both the insecure and secure docker registries.
+
 ## <a name="limitations"></a>Limitations
 
-1. All the fixtures provided by this package are <tt>session</tt> scoped; and will only be executed once per test execution. This allows for a maximum of two docker registry services: one insecure instance and one secure instance.
+1. All the fixtures provided by this package are <tt>session</tt> scoped; and will only be executed once per test execution.
 2. The `push_image` marker is processed as part of the `docker_registry_insecure` and `docker_registry_secure` fixtures. As such:
   * _all_ markers will be aggregated during initialization of the session, and processed prior test execution.
   * Pushed images will be replicated to both the insecure and secure docker registries, if both are instantiated.
 3. A working docker client is required to push images.
+4. At most 10 insecure and 10 secure docker registries are supported using the embedded docker compose.
+5. It is not currently possible to specify into which enumerated registry instances images should be replicated. As such, and for backwards compatibility, they will only be replicated into the first instance of each of the insecure and secure docker registries.
 
 ## Development
 
