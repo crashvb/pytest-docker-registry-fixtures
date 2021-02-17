@@ -28,7 +28,7 @@ from .imagename import ImageName
 LOGGER = logging.getLogger(__name__)
 
 DOCKER_REGISTRY_SERVICE = "pytest-docker-registry"
-DOCKER_REGISTRY_SERVICE_PATTERN = f"{DOCKER_REGISTRY_SERVICE}-{{0}}"
+DOCKER_REGISTRY_SERVICE_PATTERN = f"{DOCKER_REGISTRY_SERVICE}-{{0}}-{{1}}"
 
 
 class CertificateKeypair(NamedTuple):
@@ -88,7 +88,7 @@ def generate_cacerts(
         The path to the temporary file.
     """
     # Note: where() path cannot be trusted to be temporary, don't pollute persistent files ...
-    name = DOCKER_REGISTRY_SERVICE_PATTERN.format("cacerts")
+    name = DOCKER_REGISTRY_SERVICE_PATTERN.format("cacerts", "x")
     tmp_path = tmp_path_factory.mktemp(__name__).joinpath(name)
     copyfile(where(), tmp_path)
 
