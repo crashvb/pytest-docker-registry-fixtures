@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,too-many-arguments,too-many-locals
 
 """The actual fixtures, you found them ;)."""
 
@@ -604,7 +604,6 @@ def _docker_registry_secure(
     scale_factor: int,
     tmp_path_factory: TempPathFactory,
 ) -> Generator[List[DockerRegistrySecure], None, None]:
-    # pylint: disable=too-many-arguments,too-many-locals
     """Provides the endpoint of a local, mutable, secure, docker registry."""
     cache_key = _docker_registry_secure.__name__
     result = CACHE.get(cache_key, [])
@@ -704,7 +703,6 @@ def docker_registry_secure(
     request,
     tmp_path_factory: TempPathFactory,
 ) -> Generator[DockerRegistrySecure, None, None]:
-    # pylint: disable=too-many-arguments,too-many-locals
     """Provides the endpoint of a local, mutable, secure, docker registry."""
     for lst in _docker_registry_secure(
         docker_client=docker_client,
@@ -740,7 +738,6 @@ def docker_registry_secure_list(
     request,
     tmp_path_factory: TempPathFactory,
 ) -> Generator[List[DockerRegistrySecure], None, None]:
-    # pylint: disable=too-many-arguments,too-many-locals
     """Provides the endpoint of a local, mutable, secure, docker registry."""
     yield from _docker_registry_secure(
         docker_client=docker_client,
