@@ -51,6 +51,6 @@ setup(
     package_data={"pytest_docker_registry_fixtures": ["docker-compose*.yml"]},
     test_suite="tests",
     tests_require=["www_authenticate"],
-    url="https://pypi.org/project/pytest-docker-registry-fixtures/",
+    url="https://github.com/crashvb/pytest-docker-registry-fixtures",
     version=find_version("pytest_docker_registry_fixtures", "__init__.py"),
 )
