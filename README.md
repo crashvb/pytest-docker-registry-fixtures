@@ -70,14 +70,6 @@ def test_docker_pull(docker_client: DockerClient):
     image = docker_client.image.pull("busybox:1.30.1")
 ```
 
-### <a name="docker_compose_insecure"></a> docker_compose_insecure
-
-This fixture uses the `docker_compose_files` fixture to locate a user-defined docker-compose configuration file (typically <tt>tests/docker-compose.yml</tt>) that contains the <tt>pytest-docker-registry-insecure</tt> service. If one cannot be located, an embedded configuration is copied to a temporary location and returned. This fixture is used to instantiate the insecure docker registry service.
-
-### <a name="docker_compose_secure"></a> docker_compose_secure
-
-This fixture uses the `docker_compose_files` fixture to locate a user-defined docker-compose configuration file (typically <tt>tests/docker-compose.yml</tt>) that contains the <tt>pytest-docker-registry-secure</tt> service. If one cannot be located, an embedded configuration is copied to a temporary location and returned. This fixture is used to instantiate the secure docker registry service; however, unlike the configuration returned by the [docker_compose_insecure](#docker_compose_insecure) fixture, this configuration will be treated as a template; the <tt>$PATH_CERTIFICATE</tt>, <tt>$PATH_HTPASSWD</tt>, and <tt>$PATH_KEY</tt> tokens will be populated with the absolute paths provided by the [docker_registry_certs](#docker_registry_certs) and [docker_registry_htpasswd](#docker_registry_htpasswd) fixtures, as appropriate.
-
 ### <a name="docker_registry_auth_header"></a> docker_registry_auth_header
 
 Retrieves an HTTP basic authentication header that is populated with credentials that can access the secure docker registry service. The credentials are retrieved from the [docker_registry_password](#docker_registry_password) and [docker_registry_username](#docker_registry_username) fixtures. This fixture is used to replicate docker images into the secure docker registry service.
@@ -183,6 +175,14 @@ Provides an SSL context containing the CA trust store from the  [docker_registry
 ### <a name="docker_registry_username"></a> docker_registry_username
 
 Provides a generated username to use for authentication to the secure docker registry service. This fixture is used to replicate docker images into the secure docker registry service.
+
+### <a name="pdrf_docker_compose_insecure"></a> pdrf_docker_compose_insecure
+
+This fixture uses the `docker_compose_files` fixture to locate a user-defined docker-compose configuration file (typically <tt>tests/docker-compose.yml</tt>) that contains the <tt>pytest-docker-registry-insecure</tt> service. If one cannot be located, an embedded configuration is copied to a temporary location and returned. This fixture is used to instantiate the insecure docker registry service.
+
+### <a name="pdrf_docker_compose_secure"></a> pdrf_docker_compose_secure
+
+This fixture uses the `docker_compose_files` fixture to locate a user-defined docker-compose configuration file (typically <tt>tests/docker-compose.yml</tt>) that contains the <tt>pytest-docker-registry-secure</tt> service. If one cannot be located, an embedded configuration is copied to a temporary location and returned. This fixture is used to instantiate the secure docker registry service; however, unlike the configuration returned by the [pdrf_docker_compose_insecure](#pdrf_docker_compose_insecure) fixture, this configuration will be treated as a template; the <tt>$PATH_CERTIFICATE</tt>, <tt>$PATH_HTPASSWD</tt>, and <tt>$PATH_KEY</tt> tokens will be populated with the absolute paths provided by the [docker_registry_certs](#docker_registry_certs) and [docker_registry_htpasswd](#docker_registry_htpasswd) fixtures, as appropriate.
 
 ## <a name="markers"></a>Markers
 

@@ -46,38 +46,6 @@ def test_docker_client(docker_client: DockerClient):
     assert docker_client
 
 
-def test_docker_compose_insecure(docker_compose_insecure: Path):
-    """Test that the embedded docker-compose for insecure registries can be copied to a temporary file."""
-    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", 0)
-    assert service_name in docker_compose_insecure.read_text()
-
-
-def test_docker_compose_insecure_list(
-    docker_compose_insecure_list: List[Path], pdrf_scale_factor: int
-):
-    """Test that the embedded docker-compose for insecure registries can be copied to a temporary file."""
-    for i in range(pdrf_scale_factor):
-        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", i)
-        assert service_name in docker_compose_insecure_list[i].read_text()
-    assert no_duplicates(docker_compose_insecure_list)
-
-
-def test_docker_compose_secure(docker_compose_secure: Path):
-    """Test that the embedded docker-compose for secure registries can be copied to a temporary file."""
-    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", 0)
-    assert service_name in docker_compose_secure.read_text()
-
-
-def test_docker_compose_secure_list(
-    docker_compose_secure_list: List[Path], pdrf_scale_factor: int
-):
-    """Test that the embedded docker-compose for secure registries can be copied to a temporary file."""
-    for i in range(pdrf_scale_factor):
-        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", i)
-        assert service_name in docker_compose_secure_list[i].read_text()
-    assert no_duplicates(docker_compose_secure_list)
-
-
 def test_docker_registry_auth_header(
     docker_registry_auth_header: Dict[str, str],
     docker_registry_password: str,
@@ -441,3 +409,35 @@ def test_docker_registry_username_list(
     for i in range(pdrf_scale_factor):
         assert docker_registry_username_list[i]
     assert no_duplicates(docker_registry_username_list)
+
+
+def test_pdrf_docker_compose_insecure(pdrf_docker_compose_insecure: Path):
+    """Test that the embedded docker-compose for insecure registries can be copied to a temporary file."""
+    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", 0)
+    assert service_name in pdrf_docker_compose_insecure.read_text()
+
+
+def test_pdrf_docker_compose_insecure_list(
+    pdrf_docker_compose_insecure_list: List[Path], pdrf_scale_factor: int
+):
+    """Test that the embedded docker-compose for insecure registries can be copied to a temporary file."""
+    for i in range(pdrf_scale_factor):
+        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", i)
+        assert service_name in pdrf_docker_compose_insecure_list[i].read_text()
+    assert no_duplicates(pdrf_docker_compose_insecure_list)
+
+
+def test_pdrf_docker_compose_secure(pdrf_docker_compose_secure: Path):
+    """Test that the embedded docker-compose for secure registries can be copied to a temporary file."""
+    service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", 0)
+    assert service_name in pdrf_docker_compose_secure.read_text()
+
+
+def test_pdrf_docker_compose_secure_list(
+    pdrf_docker_compose_secure_list: List[Path], pdrf_scale_factor: int
+):
+    """Test that the embedded docker-compose for secure registries can be copied to a temporary file."""
+    for i in range(pdrf_scale_factor):
+        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", i)
+        assert service_name in pdrf_docker_compose_secure_list[i].read_text()
+    assert no_duplicates(pdrf_docker_compose_secure_list)

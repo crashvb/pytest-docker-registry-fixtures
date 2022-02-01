@@ -85,136 +85,6 @@ def docker_client() -> DockerClient:
     return from_env()
 
 
-def _docker_compose_insecure(
-    *,
-    docker_compose_files: List[str],
-    scale_factor: int,
-    tmp_path_factory: TempPathFactory,
-) -> Generator[List[Path], None, None]:
-    """
-    Provides the location of the docker-compose configuration file containing the insecure docker registry service.
-    """
-    cache_key = _docker_compose_insecure.__name__
-    result = CACHE.get(cache_key, [])
-    for i in range(scale_factor):
-        if i < len(result):
-            continue
-
-        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", i)
-        chain = itertools.chain(
-            get_docker_compose_user_defined(docker_compose_files, service_name),
-            # TODO: lovely-docker-compose uses the file for teardown ...
-            get_embedded_file(
-                tmp_path_factory, delete_after=False, name="docker-compose.yml"
-            ),
-        )
-        for path in chain:
-            result.append(path)
-            break
-        else:
-            LOGGER.warning("Unable to find docker compose for: %s", service_name)
-            result.append("-unknown-")
-    CACHE[cache_key] = result
-    yield result
-
-
-@pytest.fixture(scope="session")
-def docker_compose_insecure(
-    docker_compose_files: List[str], tmp_path_factory: TempPathFactory
-) -> Generator[Path, None, None]:
-    """
-    Provides the location of the docker-compose configuration file containing the insecure docker registry service.
-    """
-    for lst in _docker_compose_insecure(
-        docker_compose_files=docker_compose_files,
-        scale_factor=1,
-        tmp_path_factory=tmp_path_factory,
-    ):
-        yield lst[0]
-
-
-@pytest.fixture(scope="session")
-def docker_compose_insecure_list(
-    docker_compose_files: List[str],
-    pdrf_scale_factor: int,
-    tmp_path_factory: TempPathFactory,
-) -> Generator[List[Path], None, None]:
-    """
-    Provides the location of the docker-compose configuration file containing the insecure docker registry service.
-    """
-    yield from _docker_compose_insecure(
-        docker_compose_files=docker_compose_files,
-        scale_factor=pdrf_scale_factor,
-        tmp_path_factory=tmp_path_factory,
-    )
-
-
-def _docker_compose_secure(
-    *,
-    docker_compose_files: List[str],
-    scale_factor: int,
-    tmp_path_factory: TempPathFactory,
-) -> Generator[List[Path], None, None]:
-    """
-    Provides the location of the templated docker-compose configuration file containing the secure docker registry
-    service.
-    """
-    cache_key = _docker_compose_secure.__name__
-    result = CACHE.get(cache_key, [])
-    for i in range(scale_factor):
-        if i < len(result):
-            continue
-
-        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", i)
-        chain = itertools.chain(
-            get_docker_compose_user_defined(docker_compose_files, service_name),
-            get_embedded_file(
-                tmp_path_factory, delete_after=False, name="docker-compose.yml"
-            ),
-        )
-        for path in chain:
-            result.append(path)
-            break
-        else:
-            LOGGER.warning("Unable to find docker compose for: %s", service_name)
-            result.append("-unknown-")
-    CACHE[cache_key] = result
-    yield result
-
-
-@pytest.fixture(scope="session")
-def docker_compose_secure(
-    docker_compose_files: List[str], tmp_path_factory: TempPathFactory
-) -> Generator[Path, None, None]:
-    """
-    Provides the location of the templated docker-compose configuration file containing the secure docker registry
-    service.
-    """
-    for lst in _docker_compose_secure(
-        docker_compose_files=docker_compose_files,
-        scale_factor=1,
-        tmp_path_factory=tmp_path_factory,
-    ):
-        yield lst[0]
-
-
-@pytest.fixture(scope="session")
-def docker_compose_secure_list(
-    docker_compose_files: List[str],
-    pdrf_scale_factor: int,
-    tmp_path_factory: TempPathFactory,
-) -> Generator[List[Path], None, None]:
-    """
-    Provides the location of the templated docker-compose configuration file containing the secure docker registry
-    service.
-    """
-    yield from _docker_compose_secure(
-        docker_compose_files=docker_compose_files,
-        scale_factor=pdrf_scale_factor,
-        tmp_path_factory=tmp_path_factory,
-    )
-
-
 def _docker_registry_auth_header(
     *,
     docker_registry_password_list: List[str],
@@ -525,15 +395,15 @@ def _docker_registry_insecure(
 @pytest.fixture(scope="session")
 def docker_registry_insecure(
     docker_client: DockerClient,
-    docker_compose_insecure: Path,
     docker_services: Services,
+    pdrf_docker_compose_insecure: Path,
     request,
     tmp_path_factory: TempPathFactory,
 ) -> Generator[DockerRegistryInsecure, None, None]:
     """Provides the endpoint of a local, mutable, insecure, docker registry."""
     for lst in _docker_registry_insecure(
         docker_client=docker_client,
-        docker_compose_insecure_list=[docker_compose_insecure],
+        docker_compose_insecure_list=[pdrf_docker_compose_insecure],
         docker_services=docker_services,
         request=request,
         scale_factor=1,
@@ -545,8 +415,8 @@ def docker_registry_insecure(
 @pytest.fixture(scope="session")
 def docker_registry_insecure_list(
     docker_client: DockerClient,
-    docker_compose_insecure_list: List[Path],
     docker_services: Services,
+    pdrf_docker_compose_insecure_list: List[Path],
     pdrf_scale_factor: int,
     request,
     tmp_path_factory: TempPathFactory,
@@ -554,7 +424,7 @@ def docker_registry_insecure_list(
     """Provides the endpoint of a local, mutable, insecure, docker registry."""
     yield from _docker_registry_insecure(
         docker_client=docker_client,
-        docker_compose_insecure_list=docker_compose_insecure_list,
+        docker_compose_insecure_list=pdrf_docker_compose_insecure_list,
         docker_services=docker_services,
         request=request,
         scale_factor=pdrf_scale_factor,
@@ -691,7 +561,6 @@ def _docker_registry_secure(
 @pytest.fixture(scope="session")
 def docker_registry_secure(
     docker_client: DockerClient,
-    docker_compose_secure: Path,
     docker_registry_auth_header: Dict[str, str],
     docker_registry_cacerts: Path,
     docker_registry_certs: DockerRegistryCerts,
@@ -700,13 +569,14 @@ def docker_registry_secure(
     docker_registry_ssl_context: SSLContext,
     docker_registry_username: str,
     docker_services: Services,
+    pdrf_docker_compose_secure: Path,
     request,
     tmp_path_factory: TempPathFactory,
 ) -> Generator[DockerRegistrySecure, None, None]:
     """Provides the endpoint of a local, mutable, secure, docker registry."""
     for lst in _docker_registry_secure(
         docker_client=docker_client,
-        docker_compose_secure_list=[docker_compose_secure],
+        docker_compose_secure_list=[pdrf_docker_compose_secure],
         docker_registry_auth_header_list=[docker_registry_auth_header],
         docker_registry_cacerts_list=[docker_registry_cacerts],
         docker_registry_certs_list=[docker_registry_certs],
@@ -725,7 +595,6 @@ def docker_registry_secure(
 @pytest.fixture(scope="session")
 def docker_registry_secure_list(
     docker_client: DockerClient,
-    docker_compose_secure_list: List[Path],
     docker_registry_auth_header_list: List[Dict[str, str]],
     docker_registry_cacerts_list: List[Path],
     docker_registry_certs_list: List[DockerRegistryCerts],
@@ -734,6 +603,7 @@ def docker_registry_secure_list(
     docker_registry_ssl_context_list: List[SSLContext],
     docker_registry_username_list: List[str],
     docker_services: Services,
+    pdrf_docker_compose_secure_list: List[Path],
     pdrf_scale_factor: int,
     request,
     tmp_path_factory: TempPathFactory,
@@ -741,7 +611,7 @@ def docker_registry_secure_list(
     """Provides the endpoint of a local, mutable, secure, docker registry."""
     yield from _docker_registry_secure(
         docker_client=docker_client,
-        docker_compose_secure_list=docker_compose_secure_list,
+        docker_compose_secure_list=pdrf_docker_compose_secure_list,
         docker_registry_auth_header_list=docker_registry_auth_header_list,
         docker_registry_cacerts_list=docker_registry_cacerts_list,
         docker_registry_certs_list=docker_registry_certs_list,
@@ -828,6 +698,136 @@ def docker_registry_username_list(
 ) -> List[str]:
     """Retrieve the name of the user to use for authentication to the secure registry service."""
     return _docker_registry_username(scale_factor=pdrf_scale_factor)
+
+
+def _pdrf_docker_compose_insecure(
+    *,
+    docker_compose_files: List[str],
+    scale_factor: int,
+    tmp_path_factory: TempPathFactory,
+) -> Generator[List[Path], None, None]:
+    """
+    Provides the location of the docker-compose configuration file containing the insecure docker registry service.
+    """
+    cache_key = _pdrf_docker_compose_insecure.__name__
+    result = CACHE.get(cache_key, [])
+    for i in range(scale_factor):
+        if i < len(result):
+            continue
+
+        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("insecure", i)
+        chain = itertools.chain(
+            get_docker_compose_user_defined(docker_compose_files, service_name),
+            # TODO: lovely-docker-compose uses the file for teardown ...
+            get_embedded_file(
+                tmp_path_factory, delete_after=False, name="docker-compose.yml"
+            ),
+        )
+        for path in chain:
+            result.append(path)
+            break
+        else:
+            LOGGER.warning("Unable to find docker compose for: %s", service_name)
+            result.append("-unknown-")
+    CACHE[cache_key] = result
+    yield result
+
+
+@pytest.fixture(scope="session")
+def pdrf_docker_compose_insecure(
+    docker_compose_files: List[str], tmp_path_factory: TempPathFactory
+) -> Generator[Path, None, None]:
+    """
+    Provides the location of the docker-compose configuration file containing the insecure docker registry service.
+    """
+    for lst in _pdrf_docker_compose_insecure(
+        docker_compose_files=docker_compose_files,
+        scale_factor=1,
+        tmp_path_factory=tmp_path_factory,
+    ):
+        yield lst[0]
+
+
+@pytest.fixture(scope="session")
+def pdrf_docker_compose_insecure_list(
+    docker_compose_files: List[str],
+    pdrf_scale_factor: int,
+    tmp_path_factory: TempPathFactory,
+) -> Generator[List[Path], None, None]:
+    """
+    Provides the location of the docker-compose configuration file containing the insecure docker registry service.
+    """
+    yield from _pdrf_docker_compose_insecure(
+        docker_compose_files=docker_compose_files,
+        scale_factor=pdrf_scale_factor,
+        tmp_path_factory=tmp_path_factory,
+    )
+
+
+def _pdrf_docker_compose_secure(
+    *,
+    docker_compose_files: List[str],
+    scale_factor: int,
+    tmp_path_factory: TempPathFactory,
+) -> Generator[List[Path], None, None]:
+    """
+    Provides the location of the templated docker-compose configuration file containing the secure docker registry
+    service.
+    """
+    cache_key = _pdrf_docker_compose_secure.__name__
+    result = CACHE.get(cache_key, [])
+    for i in range(scale_factor):
+        if i < len(result):
+            continue
+
+        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", i)
+        chain = itertools.chain(
+            get_docker_compose_user_defined(docker_compose_files, service_name),
+            get_embedded_file(
+                tmp_path_factory, delete_after=False, name="docker-compose.yml"
+            ),
+        )
+        for path in chain:
+            result.append(path)
+            break
+        else:
+            LOGGER.warning("Unable to find docker compose for: %s", service_name)
+            result.append("-unknown-")
+    CACHE[cache_key] = result
+    yield result
+
+
+@pytest.fixture(scope="session")
+def pdrf_docker_compose_secure(
+    docker_compose_files: List[str], tmp_path_factory: TempPathFactory
+) -> Generator[Path, None, None]:
+    """
+    Provides the location of the templated docker-compose configuration file containing the secure docker registry
+    service.
+    """
+    for lst in _pdrf_docker_compose_secure(
+        docker_compose_files=docker_compose_files,
+        scale_factor=1,
+        tmp_path_factory=tmp_path_factory,
+    ):
+        yield lst[0]
+
+
+@pytest.fixture(scope="session")
+def pdrf_docker_compose_secure_list(
+    docker_compose_files: List[str],
+    pdrf_scale_factor: int,
+    tmp_path_factory: TempPathFactory,
+) -> Generator[List[Path], None, None]:
+    """
+    Provides the location of the templated docker-compose configuration file containing the secure docker registry
+    service.
+    """
+    yield from _pdrf_docker_compose_secure(
+        docker_compose_files=docker_compose_files,
+        scale_factor=pdrf_scale_factor,
+        tmp_path_factory=tmp_path_factory,
+    )
 
 
 @pytest.fixture(scope="session")
