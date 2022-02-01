@@ -234,7 +234,7 @@ def test_docker_registry_secure(docker_registry_secure: DockerRegistrySecure, re
 
 ## <a name="enumerated_fixtures"></a>Enumerated Fixtures
 
-It is possible to instantiate mutiple registry instances using the corresponding enumerated fixtures. All [fixtures](#fixtures) listed above have _*_list_ (e.g. `docker_registry_secure` -> `docker_registry_secure_list`) versions that will return enumerated lists of corresponding data type.
+It is possible to instantiate multiple registry instances using the corresponding enumerated fixtures. All [fixtures](#fixtures) listed above have _*_list_ (e.g. `docker_registry_secure` -> `docker_registry_secure_list`) versions that will return enumerated lists of corresponding data type.
 
 For example:
 
