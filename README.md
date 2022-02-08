@@ -121,6 +121,7 @@ The following fields are defined in the tuple provided by this fixture:
 * **docker_client** - from [docker_client](#docker_client)
 * **docker_compose** - Path to the fully instantiated docker-compose configuration.
 * **endpoint** - Endpoint of the insecure docker registry service.
+* **endpoint_name** - Endpoint of the insecure docker registry service, by service name.
 * **images** - List of images that were replicated into the insecure docker registry service.
 * **service_name** - Name of the service within the docker-compose configuration.
 
@@ -159,6 +160,7 @@ The following fields are defined in the tuple provided by this fixture:
 * **docker_client** - Docker client, from [docker_client](#docker_client), with injected authentication credentials for the secure docker registry service.
 * **docker_compose** - Path to the fully instantiated docker-compose configuration.
 * **endpoint** - Endpoint of the secure docker registry service.
+* **endpoint_name** - Endpoint of the secure docker registry service, by service name.
 * **htpasswd** - from [docker_registry_htpasswd](#docker_registry_htpasswd)
 * **images** - List of images that were replicated into the secure docker registry service.
 * **password** - from [docker_registry_password](#docker_registry_password).

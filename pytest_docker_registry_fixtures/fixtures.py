@@ -25,6 +25,8 @@ from _pytest.tmpdir import TempPathFactory
 from .imagename import ImageName
 from .utils import (
     check_url_secure,
+    DOCKER_REGISTRY_PORT_INSECURE,
+    DOCKER_REGISTRY_PORT_SECURE,
     DOCKER_REGISTRY_SERVICE,
     DOCKER_REGISTRY_SERVICE_PATTERN,
     generate_cacerts,
@@ -58,6 +60,7 @@ class DockerRegistryInsecure(NamedTuple):
     docker_client: DockerClient
     docker_compose: Path
     endpoint: str
+    endpoint_name: str
     images: List[ImageName]
     service_name: str
 
@@ -71,6 +74,7 @@ class DockerRegistrySecure(NamedTuple):
     docker_client: DockerClient
     docker_compose: Path
     endpoint: str
+    endpoint_name: str
     htpasswd: Path
     images: List[ImageName]
     password: str
@@ -218,7 +222,8 @@ def _docker_registry_certs(
             continue
 
         tmp_path = tmp_path_factory.mktemp(__name__)
-        keypair = generate_keypair()
+        service_name = DOCKER_REGISTRY_SERVICE_PATTERN.format("secure", i)
+        keypair = generate_keypair(service_name=service_name)
         docker_registry_cert = DockerRegistryCerts(
             ca_certificate=tmp_path.joinpath(f"{DOCKER_REGISTRY_SERVICE}-ca-{i}.crt"),
             ca_private_key=tmp_path.joinpath(f"{DOCKER_REGISTRY_SERVICE}-ca-{i}.key"),
@@ -370,6 +375,7 @@ def _docker_registry_insecure(
         endpoint = start_service(
             docker_services,
             docker_compose=path_docker_compose,
+            private_port=DOCKER_REGISTRY_PORT_INSECURE,
             service_name=service_name,
         )
         LOGGER.debug("Insecure docker registry endpoint [%d]: %s", i, endpoint)
@@ -384,6 +390,7 @@ def _docker_registry_insecure(
                 docker_client=docker_client,
                 docker_compose=path_docker_compose,
                 endpoint=endpoint,
+                endpoint_name=f"{service_name}:{DOCKER_REGISTRY_PORT_INSECURE}",
                 images=images,
                 service_name=service_name,
             )
@@ -520,6 +527,7 @@ def _docker_registry_secure(
             docker_services,
             check_server=check_server,
             docker_compose=path_docker_compose,
+            private_port=DOCKER_REGISTRY_PORT_SECURE,
             service_name=service_name,
         )
         LOGGER.debug("Secure docker registry endpoint [%d]: %s", i, endpoint)
@@ -546,6 +554,7 @@ def _docker_registry_secure(
                 docker_client=docker_client,
                 docker_compose=path_docker_compose,
                 endpoint=endpoint,
+                endpoint_name=f"{service_name}:{DOCKER_REGISTRY_PORT_SECURE}",
                 htpasswd=docker_registry_htpasswd_list[i],
                 password=docker_registry_password_list[i],
                 images=images,
