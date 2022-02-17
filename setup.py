@@ -49,6 +49,10 @@ setup(
     name="pytest_docker_registry_fixtures",
     packages=find_packages(),
     package_data={"pytest_docker_registry_fixtures": ["docker-compose*.yml"]},
+    project_urls={
+        "Bug Reports": "https://github.com/crashvb/pytest-docker-registry-fixtures/issues",
+        "Source": "https://github.com/crashvb/pytest-docker-registry-fixtures",
+    },
     test_suite="tests",
     tests_require=["www_authenticate"],
     url="https://github.com/crashvb/pytest-docker-registry-fixtures",
