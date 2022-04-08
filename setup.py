@@ -25,13 +25,27 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Operating System :: OS Independent",
     ],
     description="Pytest fixtures for testing with docker registries.",
     entry_points={
         "pytest11": ["docker_registry_fixtures = pytest_docker_registry_fixtures"]
     },
-    extras_require={"dev": ["black", "pylint", "twine", "wheel", "www_authenticate"]},
+    extras_require={
+        "dev": [
+            "black",
+            "coveralls",
+            "pylint",
+            "pytest",
+            "pytest-cov",
+            "twine",
+            "wheel",
+            "www_authenticate",
+        ]
+    },
     include_package_data=True,
     install_requires=[
         "bcrypt",
@@ -43,7 +57,7 @@ setup(
         "pytest",
     ],
     keywords="docker fixtures pytest registries",
-    license="GNU General Public License v3.0",
+    license="Apache License 2.0",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     name="pytest_docker_registry_fixtures",
@@ -54,7 +68,7 @@ setup(
         "Source": "https://github.com/crashvb/pytest-docker-registry-fixtures",
     },
     test_suite="tests",
-    tests_require=["www_authenticate"],
+    tests_require=["pytest", "www_authenticate"],
     url="https://github.com/crashvb/pytest-docker-registry-fixtures",
     version=find_version("pytest_docker_registry_fixtures", "__init__.py"),
 )

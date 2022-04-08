@@ -1,5 +1,13 @@
 # pytest-docker-registry-fixtures
 
+[![pypi version](https://img.shields.io/pypi/v/pytest-docker-registry-fixtures.svg)](https://pypi.org/project/pytest-docker-registry-fixtures)
+[![build status](https://github.com/crashvb/pytest-docker-registry-fixtures/actions/workflows/main.yml/badge.svg)](https://github.com/crashvb/pytest-docker-registry-fixtures/actions)
+[![coverage status](https://coveralls.io/repos/github/crashvb/pytest-docker-registry-fixtures/badge.svg)](https://coveralls.io/github/crashvb/pytest-docker-registry-fixtures)
+[![python versions](https://img.shields.io/pypi/pyversions/pytest-docker-registry-fixtures.svg?logo=python&logoColor=FBE072)](https://pypi.org/project/pytest-docker-registry-fixtures)
+[![linting](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/PyCQA/pylint)
+[![code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![license](https://img.shields.io/github/license/crashvb/pytest-docker-registry-fixtures.svg)](https://github.com/crashvb/pytest-docker-registry-fixtures/blob/master/LICENSE)
+
 ## Overview
 
 Pytest fixtures to instantiate and populated local docker registries, using [lovely-pytest-docker](https://pypi.org/project/lovely-pytest-docker) and [docker-py](https://pypi.org/project/docker-py), for testing.
@@ -36,9 +44,6 @@ def test_docker_registry_insecure(docker_registry_insecure: DockerRegistryInsecu
 ```
 
 The `push_image` mark can optionally be added to stage images in the registry prior to testing. See [Markers](#markers) for details.
-## Compatibility
-
-* Tested with python 3.8
 
 ## Installation
 ### From [pypi.org](https://pypi.org/project/pytest-docker-registry-fixtures/)
