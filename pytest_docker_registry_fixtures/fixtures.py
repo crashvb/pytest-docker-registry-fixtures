@@ -8,7 +8,6 @@ import logging
 import itertools
 
 from base64 import b64encode
-from distutils.util import strtobool
 from functools import partial
 from pathlib import Path
 from ssl import create_default_context, SSLContext
@@ -37,6 +36,7 @@ from .utils import (
     get_user_defined_file,
     replicate_image,
     start_service,
+    strtobool,
 )
 
 # Caching is needed, as singular-fixtures and list-fixtures will conflict at scale_factor=1

@@ -444,3 +444,21 @@ def start_service(
         **kwargs,
     )
     return f"{docker_services.docker_ip}:{public_port}"
+
+
+def strtobool(value: str) -> bool:
+    """
+    Convert a string representation of truth to True or False.
+
+    Args:
+        value: The string to be converted.
+
+    Returns:
+        The corresponding boolean representation.
+    """
+    value = value.lower()
+    if value in ["y", "yes", "t", "true", "on", "1"]:
+        return True
+    if value in ["n", "no", "f", "false", "off", "0"]:
+        return False
+    raise ValueError(f"Invalid truth value: {(value,)}")
