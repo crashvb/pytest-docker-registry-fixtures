@@ -12,6 +12,7 @@ from shutil import copyfile
 from socket import getfqdn
 from ssl import SSLContext
 from time import time
+from types import MethodType
 from typing import Dict, Generator, List, NamedTuple
 
 import bcrypt
@@ -21,7 +22,7 @@ from docker import DockerClient
 from docker.errors import ImageNotFound
 from OpenSSL import crypto
 from _pytest.tmpdir import TempPathFactory
-from lovely.pytest.docker.compose import Services
+from lovely.pytest.docker.compose import execute as docker_compose_execute, Services
 
 from .imagename import ImageName
 
@@ -400,6 +401,17 @@ def replicate_manifest_list(
     assert https_connection.getresponse().status == 201
 
 
+def duck_punch_execute(self, *subcommand):
+    command = ["docker", "compose", "--project-directory", self.project_directory]
+    for compose_file in self._compose_files:
+        command.append("-f")
+        command.append(compose_file)
+    command.append("-p")
+    command.append(self._project_name)
+    command += subcommand
+    return docker_compose_execute(command)
+
+
 def start_service(
     docker_services: Services,
     *,
@@ -418,7 +430,15 @@ def start_service(
         private_port: The private port to which the service is bound.
         service_name: Name of the service, within the docker-compose configuration, to be instantiated.
     """
-    # DUCK PUNCH: Don't get in the way of user-defined lovely/pytest/docker/compose.py::docker_compose_files()
+    # DUCK PUNCH #1: The "docker-compose" package does work with cpython >= v3; swap it out for "docker compose"
+    docker_services._docker_compose._original_execute = getattr(
+        docker_services._docker_compose, "execute", None
+    )
+    docker_services._docker_compose.execute = MethodType(
+        duck_punch_execute, docker_services._docker_compose
+    )
+
+    # DUCK PUNCH #2: Don't get in the way of user-defined lovely/pytest/docker/compose.py::docker_compose_files()
     #             overrides ...
 
     # Copy the original list appending our service(s). It should be assumed that all files in the list before we got

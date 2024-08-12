@@ -51,7 +51,6 @@ setup(
         "bcrypt",
         "certifi",
         "docker",
-        "docker-compose",
         "lovely-pytest-docker",
         "pyopenssl",
         "pytest",
